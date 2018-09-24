@@ -2,6 +2,12 @@ using JuAFEM, SparseArrays, TimerOutputs
 using AbaqusReader, Tensors
 using LinearAlgebra
 
+
+# TODO:
+# Add integration with other direct solvers
+# Add export of stress + strain
+# Add time statements and export to file
+
 # Uses AbaqusReader.jl to read in an input file
 # And then convert it to the JuaFEM format.
 function create_juafem_grid(inpfile::AbstractString)
@@ -52,6 +58,8 @@ function create_juafem_grid(inpfile::AbstractString)
     return JuAFEM.Grid(cells, nodes; cellsets=cellsets, nodesets=nodesets)
 end;
 
+
+# Data prameters for the problem
 struct ProblemData{ST <: SymmetricTensor}
     E::Float64 # Youngs modulus
     ν::Float64
@@ -132,7 +140,7 @@ function doassemble(K::SparseMatrixCSC, f, colors, dh::DofHandler, data::Problem
                     scratchvalues)
     for color in colors
         # Each color is safe to assemble threaded
-        @timeit "assemble color" Threads.@threads for i in 1:length(color)
+        Threads.@threads for i in 1:length(color)
             scratchvalue = get_scratchvalue!(scratchvalues, K, f, dh)
             assemble_cell!(scratchvalue, color[i], K, dh, data)
         end
@@ -199,7 +207,6 @@ function run_assemble(mesh::AbstractString)
     dim = 3
     data = ProblemData(E, ν, ρ, g, dim)
 
-
     @timeit "read_input_and_convert" grid = create_juafem_grid(mesh)
     @timeit "create coloring mesh" cell_colors, final_colors = JuAFEM.create_coloring(grid)
     @info "Colored the mesh, total number of colors: $(length(final_colors))"
@@ -224,7 +231,7 @@ function run_assemble(mesh::AbstractString)
     scratchvalues = Vector{typeof(s)}(undef, Threads.nthreads())
 
     @timeit "timesteps" for t in 1:2
-        t = 0.0
+        println("****Timestep $t ****")
         update!(dbc, t)
         @info "Created boundary conditions"
 
