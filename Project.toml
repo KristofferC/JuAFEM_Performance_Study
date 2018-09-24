@@ -1,0 +1,6 @@
+[deps]
+AbaqusReader = "bc6b9049-e460-56d6-94b4-a597b2c0390d"
+JuAFEM = "30d91d44-8115-11e8-1d28-c19a5ac16de8"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
+TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
