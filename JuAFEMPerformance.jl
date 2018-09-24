@@ -1,5 +1,3 @@
-module JuAFEMPerformance
-
 # TODO:
 # Read timing data from file output
 # Write plotting routines to visualize the data
@@ -75,4 +73,4 @@ function run_experiment()
     end
 end
 
-end
+run_experiment()

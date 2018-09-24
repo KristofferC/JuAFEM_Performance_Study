@@ -138,6 +138,8 @@ end;
 
 function doassemble(K::SparseMatrixCSC, f, colors, dh::DofHandler, data::ProblemData,
                     scratchvalues)
+    fill!(K, 0.0)
+    fill!(f, 0.0)
     for color in colors
         # Each color is safe to assemble threaded
         Threads.@threads for i in 1:length(color)
@@ -232,18 +234,20 @@ function run_assemble(mesh::AbstractString)
         @info "Updated boundary conditions for this timestep"
 
         @timeit "assemble" K, f = doassemble(K, f, final_colors, dh, data, scratchvalues);
+        @show sum(abs2, K)
+        @show sum(abs2, f)
         @info "Assembled sparse matrix"
         apply!(K, f, dbc)
         @info "Applied boundary conditions"
 
-        @timeit "factorization backslash" u = Symmetric(K) \ f;
+ #       @timeit "factorization backslash" u = Symmetric(K) \ f;
 
-        @info "Factorized and solved system"
-        vtkpath = "eifel"
-        vtkfile = vtk_grid("eifel", dh)
-        vtk_point_data(vtkfile, dh, u)
-        vtk_save(vtkfile)
-        @info "Output results to $(abspath(vtkpath))"
+  #      @info "Factorized and solved system"
+  #      vtkpath = "eifel"
+  #      vtkfile = vtk_grid("eifel", dh)
+  #      vtk_point_data(vtkfile, dh, u)
+  #      vtk_save(vtkfile)
+  #      @info "Output results to $(abspath(vtkpath))"
     end
     end # @timeit
     TimerOutputs.print_timer()
