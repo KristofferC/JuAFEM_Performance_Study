@@ -191,11 +191,6 @@ function assemble_cell!(scratch::ScratchValues{dim}, cell::Int, K::SparseMatrixC
     @inbounds assemble!(assembler, global_dofs, fe, Ke)
 end;
 
-# MKL Pardiso
-# Standard Pardiso
-# IterativeSolvers
-# MUMPS?
-
 function run_assemble(mesh::AbstractString)
     TimerOutputs.reset_timer!()
     @timeit "analysis" begin
@@ -220,6 +215,7 @@ function run_assemble(mesh::AbstractString)
     # Add a homogenoush boundary condition on the "clamped" edge
     add!(dbc, Dirichlet(:u, getnodeset(grid, "SUPPORT"), (x,t) -> zero(Vec{3}), [1,2,3]))
     close!(dbc)
+    @info "Created boundary conditions"
 
     @timeit "create sparsity pattern" K = create_sparsity_pattern(dh);
     f = zeros(ndofs(dh))
@@ -233,7 +229,7 @@ function run_assemble(mesh::AbstractString)
     @timeit "timesteps" for t in 1:2
         println("****Timestep $t ****")
         update!(dbc, t)
-        @info "Created boundary conditions"
+        @info "Updated boundary conditions for this timestep"
 
         @timeit "assemble" K, f = doassemble(K, f, final_colors, dh, data, scratchvalues);
         @info "Assembled sparse matrix"
