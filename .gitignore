@@ -1,2 +1,4 @@
 *.vtu
 *.inp
+results/
+plots/
