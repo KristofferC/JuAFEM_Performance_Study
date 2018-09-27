@@ -66,4 +66,5 @@
 
 ## Scaling
 
+<img width="634" alt="screen shot 2018-09-26 at 20 05 03" src="https://user-images.githubusercontent.com/1282691/46115945-79becc00-c1c7-11e8-9b2c-990b40b364f4.png">
 
