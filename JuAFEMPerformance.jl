@@ -2,6 +2,7 @@
 using DataFrames
 using JLD2
 using PGFPlotsX
+using Statistics
 
 # TODO:
 
@@ -110,6 +111,8 @@ function plot_speedup(df::DataFrame, ndofs)
         xmajorgrids,
         ymajorgrids,
         legend_pos="outer north east",
+        xlabel = "Number of threads",
+        ylabel = "Speedup",
     }
    )
     plots = []
