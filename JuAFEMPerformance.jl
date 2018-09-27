@@ -1,6 +1,6 @@
 # Packages below used to plot results
 using DataFrames
-using CSV
+using JLD2
 using PGFPlotsX
 
 # TODO:
@@ -13,7 +13,7 @@ PLOTPATH = joinpath(@__DIR__, "plots")
 
 # LinearSolvers #
 #################
-USE_PARDISO     = true # Requires Paridso.jl with Paridso Project support
+USE_PARDISO     = false # Requires Paridso.jl with Paridso Project support
 USE_CHOLMOD     = true
 
 # Meshes #
@@ -34,12 +34,11 @@ end
 
 # Parallelization #
 ###################
-const N_THREADS = [1, 2, 4]
+N_THREADS = [4, 2, 1]
 
 # Julia executable settings #
 #############################
-const JULIA_COMMAND = `$(Base.julia_cmd()) --color=yes`
-
+JULIA_COMMAND = `$(Base.julia_cmd()) --color=yes`
 
 ##########
 # Driver #
@@ -86,15 +85,13 @@ end
 
 function plot_results()
     mkpath(PLOTPATH)
-    result_files = joinpath.(RESULTPATH, readdir(RESULTPATH))
+    result_files = joinpath.(RESULTPATH, filter!(x -> endswith(x, ".jld2"), readdir(RESULTPATH)))
 
     global dfs = DataFrame[]
     for result in result_files
-        _df = CSV.read(result)
+        @load result df
         # TODO: Fix this when saving to JLD
-        df = _df[1,:]
-        df.pardiso_times_use = (_df.pardiso_times[1], _df.pardiso_times[2])
-        df.cholmod_times_use = (_df.cholmod_times[1], _df.cholmod_times[2])
+        df.cholmod_times_mean = mean(collect(df.cholmod_times[1]))
         push!(dfs, df)
     end
     global df = vcat(dfs...)
@@ -104,17 +101,6 @@ function plot_results()
         df_ndof = df[df.ndofs .== ndof, :]
         plot_speedup(df_ndof, ndof)
     end
-    #=
-    @show df.cholmod_times
-    mesh_runs = unique(df.ndofs)
-    for mesh_run in mesh_runs
-        df_mesh = @where(df, :ndofs .== mesh_run)
-        @show df_mesh
-    end
-    =#
- #   plot_speedup(df.nthreads, df.assembly_time, "Speedup assembly time", "assemble_scaling")
- #   plot_speedup(df.nthreads, df.total_time, "Speedup total time", "total_time_scaling")
- #   plot_speedup(df.nthreads, df.time_step, "Speedup iteration + output", "timestep_scaling")
 end
 
 function plot_speedup(df::DataFrame, ndofs)
@@ -127,7 +113,7 @@ function plot_speedup(df::DataFrame, ndofs)
     }
    )
     plots = []
-    for val in [:assembly_time, :total_time, :time_step, :cholmod_times]
+    for val in [:assembly_time, :total_time, :time_step, :post_process_time, :cholmod_times_mean]
         data = df[val]
         push!(plots,
             @pgf PlotInc(

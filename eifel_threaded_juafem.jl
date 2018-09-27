@@ -7,6 +7,7 @@ using FileIO
 using Pardiso
 using Statistics
 using StructArrays
+using Metis
 
 # TODO:
 # Add integration with other direct solvers
@@ -97,6 +98,7 @@ end
 struct ScratchValues{dim, T, CV <: CellValues, FV <: FaceValues, TT <: SymmetricTensor, Ti}
     Ke::Matrix{T}
     fe::Vector{T}
+    u_element::Vector{T}
     cellvalues::CV
     facevalues::FV
     global_dofs::Vector{Int}
@@ -138,37 +140,39 @@ function create_scratchvalues(K, f, dh::DofHandler{dim}) where {dim}
 
     coordinates = [zero(Vec{dim}) for i in 1:length(dh.grid.cells[1].nodes)]
 
-    return ScratchValues(Ke, fe, cellvalues, facevalues, global_dofs,
-                         ɛs, coordinates, assembler)
-end;
+    u_element = zeros(n_basefuncs)
 
-using InteractiveUtils
+    return ScratchValues(Ke, fe, u_element, cellvalues, facevalues, global_dofs,
+                         ɛs, coordinates, assembler)
+end
+
 function doassemble!(K::SparseMatrixCSC, f, colors, dh::DofHandler, prob_data::ProblemData,
                     quad_data::Matrix{<:QuadratureData}, scratchvalues, u=nothing)
     fill!(K, 0.0)
     fill!(f, 0.0)
-    @time for color in colors
+    for color in colors
         # Each color is safe to assemble threaded
         Threads.@threads for i in 1:length(color)
             scratchvalue = get_scratchvalue!(scratchvalues, K, f, dh)
-            assemble_cell!(scratchvalue, color[i], K, dh, prob_data ) #, quad_data, u)
+            assemble_cell!(scratchvalue, color[i], K, dh, prob_data, quad_data, u)
         end
     end
     return
 end
 
 function assemble_cell!(scratch::ScratchValues{dim}, cell::Int, K::SparseMatrixCSC,
-                        dh::DofHandler, prob_data::ProblemData) where {dim} #; quad_data::Matrix{<:QuadratureData}, u=nothing) where {dim}
+                        dh::DofHandler, prob_data::ProblemData, quad_data::Matrix{<:QuadratureData}, u=nothing) where {dim}
 
     # Unpack our stuff from the scratch
-    Ke, fe, cellvalues, facevalues, global_dofs, δɛ, coordinates, assembler =
-         scratch.Ke, scratch.fe, scratch.cellvalues, scratch.facevalues,
+    Ke, fe, u_element ,cellvalues, facevalues, global_dofs, δɛ, coordinates, assembler =
+         scratch.Ke, scratch.fe, scratch.u_element, scratch.cellvalues, scratch.facevalues,
          scratch.global_dofs, scratch.δɛ, scratch.coordinates, scratch.assembler
 
     fill!(Ke, 0)
     fill!(fe, 0)
 
     n_basefuncs = getnbasefunctions(cellvalues)
+    celldofs!(global_dofs, dh, cell)
 
     # Force from gravity, apply it to last component
     Fg = -Vec{3}(i -> i == dim ? prob_data.g : 0.0) #= * prob_data.ρ =# # Is this in JuliaFEM??
@@ -179,15 +183,16 @@ function assemble_cell!(scratch::ScratchValues{dim}, cell::Int, K::SparseMatrixC
     end
 
     reinit!(cellvalues, coordinates)
+    if u !== nothing
+        u_element .= getindex.((u,), global_dofs)
+    end
     @inbounds for q_point in 1:getnquadpoints(cellvalues)
         dΩ = getdetJdV(cellvalues, q_point)
-        if false #u !== nothing
-            #=
-            ɛ = symmetric(function_gradient(cellvalues, q_point, view(u, global_dofs)))
+        if u !== nothing
+            ɛ = symmetric(function_gradient(cellvalues, q_point, u_element))
             σ = prob_data.C ⊡ ɛ
             # Store quadrature data for this quadrature point
             quad_data[q_point, cell] = QuadratureData(ɛ, σ)
-            =#
         else
             for i in 1:n_basefuncs
                 δɛ[i] = symmetric(shape_gradient(cellvalues, q_point, i))
@@ -203,7 +208,6 @@ function assemble_cell!(scratch::ScratchValues{dim}, cell::Int, K::SparseMatrixC
         end
     end
 
-    celldofs!(global_dofs, dh, cell)
     @inbounds assemble!(assembler, global_dofs, fe, Ke)
     return
 end
@@ -215,7 +219,7 @@ function export_quadrature_data(vtkfile, quad_data::Matrix{<:QuadratureData})
     n_eles = size(quad_data, 2)
     cell_data_σ = [mean(quad_data_soa.σ[:, i]) for i in 1:n_eles]
     cell_data_ϵ = [mean(quad_data_soa.ϵ[:, i]) for i in 1:n_eles]
-    # Hardcoded 6 (Fix)
+    # TODO: Hardcoded 6 (Fix)
     vtk_cell_data(vtkfile, reshape(reinterpret(Float64, cell_data_σ), (6, n_eles)), "Stress")
     vtk_cell_data(vtkfile, reshape(reinterpret(Float64, cell_data_σ), (6, n_eles)), "Strain")
 end
@@ -249,6 +253,12 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
             @info "Created boundary conditions"
 
             @timeit "create sparsity pattern" K = create_sparsity_pattern(dh);
+
+            @timeit "find minimizing perm" begin
+                S = Metis.graph(K; check_hermitian=false)
+                perm, iperm = Metis.permutation(S)
+            end
+
             f = zeros(ndofs(dh))
             @info "Created sparsity pattern, total number of nonzeros: $(nnz(K)), size $(Base.summarysize(K) / (1024^2)) MB"
 
@@ -289,19 +299,18 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
                 @info "Assembled sparse matrix"
                 @timeit "apply boundary conditions" apply!(K, f, dbc)
                 @info "Applied boundary conditions"
-                u = rand(ndofs(dh))
 
-                cholmod_time = @elapsed @timeit "factorization backslash" u = cholesky(Symmetric(K)) \ f;
-                @show sum(abs2, u)
+                @time cholmod_time = @elapsed @timeit "factorization backslash" begin
+                    u = cholesky(Symmetric(K); perm = Vector{Int64}(perm) ) \ f;
+                end
                 push!(cholmod_times, cholmod_time)
+                @show sum(abs2, u)
 
                 @info "Factorized and solved system"
 
-                #=
                 post_process_time = @elapsed begin @timeit "post processing" begin
                     doassemble!(K, f, final_colors, dh, data, quad_data, scratchvalues, u)
                 end end
-                =#
 
                 output_time = @elapsed begin @timeit "data output" begin
                     vtkpath = joinpath(@__DIR__, "eifel_$(ndofs(dh)).vtu")
@@ -335,12 +344,12 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
             end end
         end
     end end # @timeit
-    TimerOutputs.print_timer(; compact=true)
+    TimerOutputs.print_timer()
     println()
 
     df = DataFrame(ndofs = ndofs(dh), mesh = mesh, setup_cost = setup_cost, assembly_time = assembly_time,
                    nthreads = nt, total_time = total_time, time_step = time_step,
-                   pardiso_times = pardiso_times, cholmod_times = cholmod_times, post_process_time = post_process_time)
+                   pardiso_times = Tuple(pardiso_times), cholmod_times = Tuple(cholmod_times), post_process_time = post_process_time)
     mkpath(output_path)
     file = joinpath(output_path, "$(basename(mesh))_$(nt).jld2")
     # TODO: Export to JLD instead, exporting to CSV when some of the cells are vectors

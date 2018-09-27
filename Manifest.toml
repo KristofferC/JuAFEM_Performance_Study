@@ -10,6 +10,12 @@ git-tree-sha1 = "9e3bff61bc46d3420d903b53ad07f85325fddc28"
 uuid = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 version = "1.0.0"
 
+[[ArnoldiMethod]]
+deps = ["DelimitedFiles", "LinearAlgebra", "Pkg", "Random", "SparseArrays", "StaticArrays", "Test"]
+git-tree-sha1 = "2b6845cea546604fb4dca4e31414a6a59d39ddcd"
+uuid = "ec485272-7323-5ecc-a04f-4719b315124d"
+version = "0.0.4"
+
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
@@ -173,6 +179,12 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
+[[LightGraphs]]
+deps = ["ArnoldiMethod", "Base64", "CodecZlib", "DataStructures", "DelimitedFiles", "Distributed", "LinearAlgebra", "Markdown", "Pkg", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "446a9cf208ec401ae67e517de4eeceaf2cd5cdac"
+uuid = "093fc24a-ae57-5d10-9952-331d41423f4d"
+version = "1.1.0"
+
 [[LightXML]]
 deps = ["BinaryProvider", "Libdl", "Pkg", "Test"]
 git-tree-sha1 = "aeec7a341652d47bc773475a42952fa78eccd7cc"
@@ -195,6 +207,14 @@ version = "0.4.4"
 [[Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
+
+[[Metis]]
+deps = ["BinaryProvider", "Libdl", "LightGraphs", "LinearAlgebra", "Random", "SparseArrays", "Test"]
+git-tree-sha1 = "4d2031bf44f07d80bc94c9006d4ffaeb5a5ece31"
+repo-rev = "master"
+repo-url = "https://github.com/KristofferC/Metis.jl"
+uuid = "2679e427-3c69-5b7f-982b-ece356f1e94b"
+version = "0.0.10+"
 
 [[Missings]]
 deps = ["Dates", "InteractiveUtils", "SparseArrays", "Test"]
@@ -284,6 +304,12 @@ uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
 uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
+
+[[SimpleTraits]]
+deps = ["InteractiveUtils", "MacroTools", "Pkg", "Test"]
+git-tree-sha1 = "c0a542b8d5e369b179ccd296b2ca987f6da5da0a"
+uuid = "699a6c99-e7fa-54fc-8d76-47d257e15c1d"
+version = "0.8.0"
 
 [[Sockets]]
 uuid = "6462fe0b-24de-5631-8697-dd941f90decc"
