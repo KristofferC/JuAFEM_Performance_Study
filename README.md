@@ -9,7 +9,7 @@
     - Run `run_experiment()` do run the experiment
     - Run `plot_results()` to plot results
  
-## Results
+## Results 921k element model
 
 ### 4 threads
 
