@@ -6,6 +6,8 @@
 * Run `julia --project` in this folder.
 * Run `import Pkg; Pkg.instantiate()`
 * Run `include("JuAFEMPerformance.jl")`
+    - Run `run_experiment()` do run the experiment
+    - Run `plot_results()` to plot results
  
 ## Results
 
