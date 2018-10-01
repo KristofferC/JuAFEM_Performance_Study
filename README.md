@@ -1,11 +1,15 @@
 # Juafem performance test
 
-## To run
+## To run JuAFEM performance test
 
 * Change the settings in `JuAFEMPerformance.jl`.
 * Run `julia --project` in this folder.
 * Run `import Pkg; Pkg.instantiate()`
 * Run `include("JuAFEMPerformance.jl")`
+
+## To run JuliaFEM performance test
+
+* Run e.g. `julia --project JuliaFEMPerformance.jl TET10_220271 1x4
  
 ## Results
 
