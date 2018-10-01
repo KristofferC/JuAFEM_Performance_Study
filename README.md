@@ -6,12 +6,14 @@
 * Run `julia --project` in this folder.
 * Run `import Pkg; Pkg.instantiate()`
 * Run `include("JuAFEMPerformance.jl")`
+    - Run `run_experiment()` do run the experiment
+    - Run `plot_results()` to plot results
 
 ## To run JuliaFEM performance test
 
 * Run e.g. `julia --project JuliaFEMPerformance.jl TET10_220271 1x4
  
-## Results
+## Results 921k element model
 
 ### 4 threads
 
@@ -70,4 +72,5 @@
 
 ## Scaling
 
+<img width="634" alt="screen shot 2018-09-26 at 20 05 03" src="https://user-images.githubusercontent.com/1282691/46115945-79becc00-c1c7-11e8-9b2c-990b40b364f4.png">
 
