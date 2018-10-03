@@ -8,12 +8,24 @@ ENV["USE_OPENMP"] = 1
 ENV["OPENBLAS_NUM_THREADS"] = n_threads
 ENV["JULIA_NUM_THREADS"] = n_threads
 
-
 using JuliaFEM
 using TimerOutputs
-using JuliaFEM.Preprocess
-using JuliaFEM.Postprocess
-add_elements! = JuliaFEM.add_elements!
+using SparseArrays, LinearAlgebra
+
+"""
+    fill_diagonal(A)
+
+Return a diagonal matrix `D` having 1.0 in all zero rows of matrix `A`. Then,
+one haves matrix `A + D` which should be invertible.
+"""
+function fill_diagonal(A)
+    N = size(A, 2)
+    zero_rows = ones(N)
+    for j in rowvals(A)
+        zero_rows[j] = 0.0
+    end
+    return dropzeros(spdiagm(0 => zero_rows))
+end
 
 function run_simulation(mesh, results)
     println("running")
@@ -60,6 +72,8 @@ function run_simulation(mesh, results)
         end
     end
 
+    Kd = fill_diagonal(K)
+
     @timeit "solution" begin
         # free up some memory before solution by emptying field assemblies from problems
         for problem in get_field_problems(analysis)
@@ -70,18 +84,18 @@ function run_simulation(mesh, results)
             Kb = 1.0e36*C1'*C1
             fb = 1.0e36*C1'*g
         end
-        @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb)
+        @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb+Kd)
         @timeit "factorize K" F = LinearAlgebra.cholesky(Ks)
         @timeit "solve u" u = F \ (f+fb)
         @timeit "solve la" la = f - K*u
         @timeit "update solution" update!(analysis, vec(full(u)), vec(full(la)), time)
     end
 
-    @timeit "postprocess" begin
-        tower.postprocess_fields = ["strain", "stress"]
-        @timeit "postprocess strain" postprocess!(tower, time, Val{:strain})
-        @timeit "postprocess stress" postprocess!(tower, time, Val{:stress})
-    end
+#    @timeit "postprocess" begin
+#        tower.postprocess_fields = ["strain", "stress"]
+#        @timeit "postprocess strain" postprocess!(tower, time, Val{:strain})
+#        @timeit "postprocess stress" postprocess!(tower, time, Val{:stress})
+#    end
 
     @timeit "write results to disk" write_results!(analysis, time)
 
