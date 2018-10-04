@@ -21,7 +21,7 @@ USE_CHOLMOD     = true
 ##########
 const MESHES = ["EIFFEL_TOWER_TET10_220271.inp",
                 #"EIFFEL_TOWER_TET10_376120.inp",
-                "EIFFEL_TOWER_TET10_921317.inp"
+                #"EIFFEL_TOWER_TET10_921317.inp"
                ]
 # Download the meshes
 for mesh in MESHES
@@ -35,7 +35,7 @@ end
 
 # Parallelization #
 ###################
-N_THREADS = [4, 2, 1]
+N_THREADS = [4]
 
 # Julia executable settings #
 #############################

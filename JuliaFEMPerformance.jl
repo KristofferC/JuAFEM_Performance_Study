@@ -11,6 +11,7 @@ ENV["JULIA_NUM_THREADS"] = n_threads
 using JuliaFEM
 using TimerOutputs
 using SparseArrays, LinearAlgebra
+using Metis
 
 """
     fill_diagonal(A)
@@ -58,39 +59,50 @@ function run_simulation(mesh, results)
         end
     end
 
-    local K, f, C1, g
-    @timeit "assemble" begin
-        @timeit "assemble problems" for problem in get_problems(analysis)
-            assemble!(problem, time)
+    local perm
+    @timeit "timeloop" for i in 1:10
+        local K, f, C1, g
+        @timeit "assemble" begin
+            @timeit "assemble problems" for problem in get_problems(analysis)
+                assemble!(problem, time)
+            end
+            @timeit "construct global assemblies" begin
+                @timeit "get_field_assembly" M, K, Kg, f, fg = get_field_assembly(analysis)
+                ndofs = size(K, 2)
+                @timeit "get_boundary_assembly" Kb, C1, C2, D, fb, g = get_boundary_assembly(analysis, ndofs)
+                @timeit "sum K" K = K + Kg + Kb
+                @timeit "sum f" f = f + fg + fb
+            end
         end
-        @timeit "construct global assemblies" begin
-            @timeit "get_field_assembly" M, K, Kg, f, fg = get_field_assembly(analysis)
-            ndofs = size(K, 2)
-            @timeit "get_boundary_assembly" Kb, C1, C2, D, fb, g = get_boundary_assembly(analysis, ndofs)
-            @timeit "sum K" K = K + Kg + Kb
-            @timeit "sum f" f = f + fg + fb
+
+        Kd = fill_diagonal(K)
+
+        @timeit "solution" begin
+            # free up some memory before solution by emptying field assemblies from problems
+            for problem in get_field_problems(analysis)
+                empty!(problem.assembly)
+            end
+            # at this point we basically have [u,la] = [K C1; C2 D] \ [f,g]
+            @timeit "eliminate boundary conditions using penalty method" begin
+                Kb = 1.0e36*C1'*C1
+                fb = 1.0e36*C1'*g
+            end
+            @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb+Kd)
+            @info "Created sparsity pattern, total number of nonzeros: $(nnz(Ks.data)), size $(Base.summarysize(Ks.data) / (1024^2)) MB"
+
+            if i == 1
+                S = Metis.graph(Ks.data; check_hermitian=false)
+                perm, iperm = Metis.permutation(S)
+            end
+
+            @timeit "factorize K" F = LinearAlgebra.cholesky(Ks; perm = Vector{Int64}(perm))
+            @info "Created factorization pattern, total number of nonzeros: $(nnz(F))"
+
+            @timeit "solve u" u = F \ (f+fb)
+            @timeit "solve la" la = f - K*u
+            @timeit "update solution" update!(analysis, vec(Array(u)), vec(Array(la)), time)
         end
     end
-
-    Kd = fill_diagonal(K)
-
-    @timeit "solution" begin
-        # free up some memory before solution by emptying field assemblies from problems
-        for problem in get_field_problems(analysis)
-            empty!(problem.assembly)
-        end
-        # at this point we basically have [u,la] = [K C1; C2 D] \ [f,g]
-        @timeit "eliminate boundary conditions using penalty method" begin
-            Kb = 1.0e36*C1'*C1
-            fb = 1.0e36*C1'*g
-        end
-        @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb+Kd)
-        @timeit "factorize K" F = LinearAlgebra.cholesky(Ks)
-        @timeit "solve u" u = F \ (f+fb)
-        @timeit "solve la" la = f - K*u
-        @timeit "update solution" update!(analysis, vec(full(u)), vec(full(la)), time)
-    end
-
 #    @timeit "postprocess" begin
 #        tower.postprocess_fields = ["strain", "stress"]
 #        @timeit "postprocess strain" postprocess!(tower, time, Val{:strain})
@@ -104,5 +116,6 @@ end
 
 mesh = joinpath(@__DIR__, "EIFFEL_TOWER_$model.inp")
 results = "$(model)_$(setup)"
+TimerOutputs.reset_timer!()
 @timeit "run simulation 1" run_simulation(mesh, results)
 print_timer(compact=true)
