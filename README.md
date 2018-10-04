@@ -85,7 +85,7 @@ Nonzeros in factorization (no reordering, reordering)
 
 ### JuliaFEM 
 
-````
+```
 [ Info: Created factorization pattern, total number of nonzeros: 2_384_888_674
 [ Info: Created factorization pattern, total number of nonzeros: 1_337_180_813
 ```
