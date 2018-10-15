@@ -155,6 +155,35 @@ Nonzeros in factorization (no reordering, reordering)
  ──────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
+#### 1 thread 10 timesteps
+
+```
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+                                                       Time                   Allocations
+                                               ──────────────────────   ───────────────────────
+               Tot / % measured:                     297s / 100%            95.6GiB / 100%
+
+ Section                               ncalls     time   %tot     avg     alloc   %tot      avg
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+ analysis                                   1     296s   100%    296s   95.6GiB  100%   95.6GiB
+   timesteps                               10     274s  92.6%   27.4s   88.4GiB  92.5%  8.84GiB
+     factorization backslash               10     190s  64.1%   19.0s   78.5GiB  82.2%  7.85GiB
+     assemble                              10    37.5s  12.7%   3.75s    151MiB  0.15%  15.1MiB
+     apply boundary conditions             10    22.7s  7.66%   2.27s   6.59GiB  6.89%   674MiB
+     data output                           10    19.6s  6.62%   1.96s   3.07GiB  3.21%   314MiB
+     post processing                       10    3.99s  1.35%   399ms   20.8MiB  0.02%  2.08MiB
+     update boundary conditions            10   46.8ms  0.02%  4.68ms   6.24MiB  0.01%   639KiB
+   setup cost                               1    21.9s  7.41%   21.9s   7.19GiB  7.52%  7.19GiB
+     find minimizing perm                   1    6.11s  2.07%   6.11s    177MiB  0.18%   177MiB
+     create sparsity pattern                1    4.83s  1.63%   4.83s   4.03GiB  4.22%  4.03GiB
+     reading input                          1    4.44s  1.50%   4.44s   0.97GiB  1.01%  0.97GiB
+     create coloring mesh                   1    2.22s  0.75%   2.22s    389MiB  0.40%   389MiB
+     converting input to JuAFEM mesh        1    1.38s  0.47%   1.38s    255MiB  0.26%   255MiB
+     creating dofs                          1    223ms  0.08%   223ms   64.2MiB  0.07%  64.2MiB
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+
+```
+
 ### JuliaFEM
 
 #### 4 threads 10 timesteps
