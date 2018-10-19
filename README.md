@@ -127,6 +127,35 @@ Nonzeros in factorization (no reordering, reordering)
 
 ### JuAFEM
 
+
+#### 1 thread 10 timesteps
+
+```
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+                                                       Time                   Allocations
+                                               ──────────────────────   ───────────────────────
+               Tot / % measured:                     297s / 100%            95.6GiB / 100%
+
+ Section                               ncalls     time   %tot     avg     alloc   %tot      avg
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+ analysis                                   1     296s   100%    296s   95.6GiB  100%   95.6GiB
+   timesteps                               10     274s  92.6%   27.4s   88.4GiB  92.5%  8.84GiB
+     factorization backslash               10     190s  64.1%   19.0s   78.5GiB  82.2%  7.85GiB
+     assemble                              10    37.5s  12.7%   3.75s    151MiB  0.15%  15.1MiB
+     apply boundary conditions             10    22.7s  7.66%   2.27s   6.59GiB  6.89%   674MiB
+     data output                           10    19.6s  6.62%   1.96s   3.07GiB  3.21%   314MiB
+     post processing                       10    3.99s  1.35%   399ms   20.8MiB  0.02%  2.08MiB
+     update boundary conditions            10   46.8ms  0.02%  4.68ms   6.24MiB  0.01%   639KiB
+   setup cost                               1    21.9s  7.41%   21.9s   7.19GiB  7.52%  7.19GiB
+     find minimizing perm                   1    6.11s  2.07%   6.11s    177MiB  0.18%   177MiB
+     create sparsity pattern                1    4.83s  1.63%   4.83s   4.03GiB  4.22%  4.03GiB
+     reading input                          1    4.44s  1.50%   4.44s   0.97GiB  1.01%  0.97GiB
+     create coloring mesh                   1    2.22s  0.75%   2.22s    389MiB  0.40%   389MiB
+     converting input to JuAFEM mesh        1    1.38s  0.47%   1.38s    255MiB  0.26%   255MiB
+     creating dofs                          1    223ms  0.08%   223ms   64.2MiB  0.07%  64.2MiB
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+```
+
 #### 4 threads 10 timesteps
 
 ```
@@ -155,68 +184,72 @@ Nonzeros in factorization (no reordering, reordering)
  ──────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-#### 1 thread 10 timesteps
-
-```
- ──────────────────────────────────────────────────────────────────────────────────────────────
-                                                       Time                   Allocations
-                                               ──────────────────────   ───────────────────────
-               Tot / % measured:                     297s / 100%            95.6GiB / 100%
-
- Section                               ncalls     time   %tot     avg     alloc   %tot      avg
- ──────────────────────────────────────────────────────────────────────────────────────────────
- analysis                                   1     296s   100%    296s   95.6GiB  100%   95.6GiB
-   timesteps                               10     274s  92.6%   27.4s   88.4GiB  92.5%  8.84GiB
-     factorization backslash               10     190s  64.1%   19.0s   78.5GiB  82.2%  7.85GiB
-     assemble                              10    37.5s  12.7%   3.75s    151MiB  0.15%  15.1MiB
-     apply boundary conditions             10    22.7s  7.66%   2.27s   6.59GiB  6.89%   674MiB
-     data output                           10    19.6s  6.62%   1.96s   3.07GiB  3.21%   314MiB
-     post processing                       10    3.99s  1.35%   399ms   20.8MiB  0.02%  2.08MiB
-     update boundary conditions            10   46.8ms  0.02%  4.68ms   6.24MiB  0.01%   639KiB
-   setup cost                               1    21.9s  7.41%   21.9s   7.19GiB  7.52%  7.19GiB
-     find minimizing perm                   1    6.11s  2.07%   6.11s    177MiB  0.18%   177MiB
-     create sparsity pattern                1    4.83s  1.63%   4.83s   4.03GiB  4.22%  4.03GiB
-     reading input                          1    4.44s  1.50%   4.44s   0.97GiB  1.01%  0.97GiB
-     create coloring mesh                   1    2.22s  0.75%   2.22s    389MiB  0.40%   389MiB
-     converting input to JuAFEM mesh        1    1.38s  0.47%   1.38s    255MiB  0.26%   255MiB
-     creating dofs                          1    223ms  0.08%   223ms   64.2MiB  0.07%  64.2MiB
- ──────────────────────────────────────────────────────────────────────────────────────────────
-
-```
-
 ### JuliaFEM
 
-#### 4 threads 10 timesteps
+#### 1 thread 10 timesteps
 
 ```
  ──────────────────────────────────────────────────────────────────────────────────────────────────
                                                                          Time         Allocations
                                                                     ──────────────   ──────────────
-                           Total measured:                                523s           206GiB
+                           Total measured:                                661s           206GiB
 
  Section                                                    ncalls     time   %tot     alloc   %tot
  ──────────────────────────────────────────────────────────────────────────────────────────────────
- run simulation 1                                                1     512s   100%    204GiB  100%
-   timeloop                                                      1     493s  96.4%    201GiB  98.8%
-     solution                                                   10     272s  53.1%    126GiB  62.0%
-       factorize K                                              10     190s  37.1%   57.4GiB  28.2%
-       create symmetric K                                       10    14.0s  2.73%   13.2GiB  6.46%
-       update solution                                          10    11.4s  2.24%   1.93GiB  0.95%
-       solve u                                                  10    6.93s  1.35%    561MiB  0.27%
-       solve la                                                 10    3.42s  0.67%    469MiB  0.22%
-       eliminate boundary conditions using penalty method       10    1.08s  0.21%   0.98GiB  0.48%
-     assemble                                                   10     211s  41.2%   74.2GiB  36.4%
-       assemble problems                                        10     135s  26.4%   18.6GiB  9.15%
-       construct global assemblies                              10    75.8s  14.8%   55.6GiB  27.3%
-         get_field_assembly                                     10    65.2s  12.7%   41.4GiB  20.3%
-         sum K                                                  10    9.90s  1.93%   13.2GiB  6.46%
-         get_boundary_assembly                                  10    647ms  0.13%    889MiB  0.43%
-         sum f                                                  10   73.4ms  0.01%    195MiB  0.09%
-   initialize model                                              1    8.07s  1.58%   1.54GiB  0.76%
-     parse input data                                            1    5.19s  1.01%   1.03GiB  0.50%
-     initialize models                                           1    2.88s  0.56%    527MiB  0.25%
-   write results to disk                                         1    6.43s  1.26%    878MiB  0.42%
- ──────────────────────────────────────────────────────────────────────────────────────────────────k
+ run simulation 1                                                1     650s   100%    204GiB  100%
+   timeloop                                                      1     631s  97.1%    201GiB  98.8%
+     solution                                                   10     410s  63.1%    126GiB  62.0%
+       factorize K                                              10     331s  51.0%   57.4GiB  28.2%
+       create symmetric K                                       10    14.1s  2.17%   13.2GiB  6.46%
+       update solution                                          10    11.3s  1.74%   1.93GiB  0.95%
+       solve u                                                  10    8.99s  1.38%    561MiB  0.27%
+       solve la                                                 10    2.31s  0.36%    469MiB  0.22%
+       eliminate boundary conditions using penalty method       10    1.08s  0.17%   0.98GiB  0.48%
+     assemble                                                   10     210s  32.4%   74.2GiB  36.4%
+       assemble problems                                        10     135s  20.8%   18.6GiB  9.15%
+       construct global assemblies                              10    75.2s  11.6%   55.6GiB  27.3%
+         get_field_assembly                                     10    64.6s  9.94%   41.4GiB  20.3%
+         sum K                                                  10    10.0s  1.54%   13.2GiB  6.46%
+         get_boundary_assembly                                  10    574ms  0.09%    889MiB  0.43%
+         sum f                                                  10   74.4ms  0.01%    195MiB  0.09%
+   initialize model                                              1    8.09s  1.25%   1.54GiB  0.76%
+     parse input data                                            1    5.20s  0.80%   1.03GiB  0.50%
+     initialize models                                           1    2.89s  0.45%    527MiB  0.25%
+   write results to disk                                         1    6.48s  1.00%    878MiB  0.42%
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+ ```
+
+#### 4 threads 10 timesteps
+
+```
+───────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                         Time         Allocations
+                                                                    ──────────────   ──────────────
+                           Total measured:                                521s           206GiB
+
+ Section                                                    ncalls     time   %tot     alloc   %tot
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+ run simulation 1                                                1     510s   100%    204GiB  100%
+   timeloop                                                      1     491s  96.4%    201GiB  98.8%
+     solution                                                   10     267s  52.4%    126GiB  62.0%
+       factorize K                                              10     187s  36.7%   57.4GiB  28.2%
+       create symmetric K                                       10    14.0s  2.76%   13.2GiB  6.46%
+       update solution                                          10    11.9s  2.34%   1.93GiB  0.95%
+       solve u                                                  10    7.15s  1.40%    561MiB  0.27%
+       solve la                                                 10    3.00s  0.59%    469MiB  0.22%
+       eliminate boundary conditions using penalty method       10    1.09s  0.21%   0.98GiB  0.48%
+     assemble                                                   10     213s  41.8%   74.2GiB  36.4%
+       assemble problems                                        10     136s  26.7%   18.6GiB  9.15%
+       construct global assemblies                              10    77.1s  15.1%   55.6GiB  27.3%
+         get_field_assembly                                     10    66.3s  13.0%   41.4GiB  20.3%
+         sum K                                                  10    10.1s  1.99%   13.2GiB  6.46%
+         get_boundary_assembly                                  10    608ms  0.12%    889MiB  0.43%
+         sum f                                                  10   77.0ms  0.02%    195MiB  0.09%
+   initialize model                                              1    8.10s  1.59%   1.54GiB  0.76%
+     parse input data                                            1    5.20s  1.02%   1.03GiB  0.50%
+     initialize models                                           1    2.90s  0.57%    527MiB  0.25%
+   write results to disk                                         1    6.47s  1.27%    878MiB  0.42%
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
  With reoredering
@@ -225,29 +258,29 @@ Nonzeros in factorization (no reordering, reordering)
  ──────────────────────────────────────────────────────────────────────────────────────────────────
                                                                          Time         Allocations
                                                                     ──────────────   ──────────────
-                           Total measured:                                445s           175GiB
+                           Total measured:                                442s           175GiB
 
  Section                                                    ncalls     time   %tot     alloc   %tot
  ──────────────────────────────────────────────────────────────────────────────────────────────────
- run simulation 1                                                1     433s   100%    173GiB  100%
-   timeloop                                                      1     413s  95.4%    171GiB  98.6%
-     assemble                                                   10     213s  49.1%   74.2GiB  42.9%
-       assemble problems                                        10     136s  31.5%   18.7GiB  10.8%
-       construct global assemblies                              10    76.5s  17.6%   55.6GiB  32.1%
-         get_field_assembly                                     10    66.0s  15.2%   41.4GiB  23.9%
-         sum K                                                  10    9.79s  2.26%   13.2GiB  7.60%
-         get_boundary_assembly                                  10    610ms  0.14%    889MiB  0.50%
-         sum f                                                  10   73.3ms  0.02%    195MiB  0.11%
-     solution                                                   10     190s  43.8%   95.8GiB  55.3%
-       factorize K                                              10     119s  27.5%   42.9GiB  24.8%
-       create symmetric K                                       10    14.0s  3.24%   13.2GiB  7.60%
-       solve u                                                  10    10.9s  2.52%    561MiB  0.32%
-       update solution                                          10    10.3s  2.38%   1.93GiB  1.12%
-       solve la                                                 10    2.35s  0.54%    469MiB  0.26%
-       eliminate boundary conditions using penalty method       10    1.10s  0.25%   0.98GiB  0.57%
-   initialize model                                              1    8.62s  1.99%   1.54GiB  0.89%
-     parse input data                                            1    5.55s  1.28%   1.03GiB  0.59%
-     initialize models                                           1    3.07s  0.71%    527MiB  0.30%
-   write results to disk                                         1    7.01s  1.62%    878MiB  0.50%
- ──────────────────────────────────────────────────────────────────────────────────────────────────k
+ run simulation 1                                                1     431s   100%    173GiB  100%
+   timeloop                                                      1     412s  95.6%    171GiB  98.6%
+     assemble                                                   10     212s  49.1%   74.2GiB  42.9%
+       assemble problems                                        10     135s  31.3%   18.7GiB  10.8%
+       construct global assemblies                              10    76.6s  17.8%   55.6GiB  32.1%
+         get_field_assembly                                     10    65.8s  15.3%   41.4GiB  23.9%
+         sum K                                                  10    10.1s  2.34%   13.2GiB  7.60%
+         get_boundary_assembly                                  10    611ms  0.14%    889MiB  0.50%
+         sum f                                                  10   76.2ms  0.02%    195MiB  0.11%
+     solution                                                   10     189s  44.0%   95.8GiB  55.3%
+       factorize K                                              10     118s  27.3%   42.9GiB  24.8%
+       create symmetric K                                       10    14.1s  3.28%   13.2GiB  7.60%
+       solve u                                                  10    11.4s  2.65%    561MiB  0.32%
+       update solution                                          10    10.2s  2.38%   1.93GiB  1.12%
+       solve la                                                 10    2.40s  0.56%    469MiB  0.26%
+       eliminate boundary conditions using penalty method       10    1.08s  0.25%   0.98GiB  0.57%
+   initialize model                                              1    8.23s  1.91%   1.54GiB  0.89%
+     parse input data                                            1    5.26s  1.22%   1.03GiB  0.59%
+     initialize models                                           1    2.97s  0.69%    527MiB  0.30%
+   write results to disk                                         1    6.70s  1.56%    878MiB  0.50%
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
  ```
