@@ -11,7 +11,7 @@ ENV["JULIA_NUM_THREADS"] = n_threads
 using JuliaFEM
 using TimerOutputs
 using SparseArrays, LinearAlgebra
-using Metis
+using AMD
 
 """
     fill_diagonal(A)
@@ -70,13 +70,16 @@ function run_simulation(mesh, results)
                 @timeit "get_field_assembly" M, K, Kg, f, fg = get_field_assembly(analysis)
                 ndofs = size(K, 2)
                 @timeit "get_boundary_assembly" Kb, C1, C2, D, fb, g = get_boundary_assembly(analysis, ndofs)
-                @timeit "sum K" K = K + Kg + Kb
-                @timeit "sum f" f = f + fg + fb
+  #              @timeit "sum K" K = K + Kg + Kb
+   #             @timeit "sum f" f = f + fg + fb
             end
         end
 
         Kd = fill_diagonal(K)
 
+        if i == 1
+            @info "Created sparsity pattern, total number of nonzeros: $(nnz(K)), size $(Base.summarysize(K) / (1024^2)) MB"
+        end
         @timeit "solution" begin
             # free up some memory before solution by emptying field assemblies from problems
             for problem in get_field_problems(analysis)
@@ -88,11 +91,10 @@ function run_simulation(mesh, results)
                 fb = 1.0e36*C1'*g
             end
             @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb+Kd)
-            @info "Created sparsity pattern, total number of nonzeros: $(nnz(Ks.data)), size $(Base.summarysize(Ks.data) / (1024^2)) MB"
 
             if i == 1
-                S = Metis.graph(Ks.data; check_hermitian=false)
-                perm, iperm = Metis.permutation(S)
+                perm = AMD.amd(Ks.data)
+                @assert isperm(perm)
             end
 
             @timeit "factorize K" F = LinearAlgebra.cholesky(Ks; perm = Vector{Int64}(perm))

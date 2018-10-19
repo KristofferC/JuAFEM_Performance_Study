@@ -1,3 +1,9 @@
+[[AMD]]
+deps = ["InteractiveUtils", "Libdl", "Pkg", "SparseArrays", "Test"]
+git-tree-sha1 = "95428259ffb03bfaf8cfab4286d150ecffaf8fa3"
+uuid = "14f7f29c-3bd6-536c-9a0b-7339e30b5a3e"
+version = "0.3.0"
+
 [[AbaqusReader]]
 deps = ["Nullables", "Test"]
 git-tree-sha1 = "0c6f5373eeb3f10f8f8405038c071b18d23907f0"
@@ -18,9 +24,9 @@ version = "0.0.4"
 
 [[Arpack]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "5b046410fb617d9cf2f8bc0edd5da05a2e5a2ad4"
+git-tree-sha1 = "1ce1ce9984683f0b6a587d5bdbc688ecb480096f"
 uuid = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
-version = "0.2.3"
+version = "0.3.0"
 
 [[AsterReader]]
 deps = ["FEMBase", "HDF5", "LinearAlgebra", "SparseArrays", "Test"]
@@ -39,9 +45,9 @@ version = "0.8.10"
 
 [[BinaryProvider]]
 deps = ["Libdl", "Pkg", "SHA", "Test"]
-git-tree-sha1 = "48c147e63431adbcee69bc40b04c3f0fec0a4982"
+git-tree-sha1 = "9930c1a6cd49d9fcd7218df6be417e6ae4f1468a"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.0"
+version = "0.5.2"
 
 [[Blosc]]
 deps = ["BinaryProvider", "CMakeWrapper", "Compat", "Libdl"]
@@ -57,9 +63,9 @@ version = "1.0.0"
 
 [[CMake]]
 deps = ["BinDeps", "Libdl", "Pkg", "Test"]
-git-tree-sha1 = "4f0b34e12d4d2c6a367d62c73c961ad468d62b7b"
+git-tree-sha1 = "74853a75c26a4a73ac391ee26ee29ebeb5583d9f"
 uuid = "631607c0-34d2-5d66-819e-eb0f9aa2061a"
-version = "1.0.2"
+version = "1.1.0"
 
 [[CMakeWrapper]]
 deps = ["BinDeps", "CMake", "Libdl", "Parameters", "Pkg", "Test"]
@@ -99,9 +105,9 @@ version = "0.2.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "ff2595695fc4f14427358ce2593f867085c45dcb"
+git-tree-sha1 = "2d9e14d19bad3f9ad5cc5e4cffabc3cfa59de825"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "1.2.0"
+version = "1.3.0"
 
 [[Crayons]]
 deps = ["Pkg", "Test"]
@@ -139,9 +145,9 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
 [[DefaultApplication]]
 deps = ["Pkg", "Test"]
-git-tree-sha1 = "ae397bb81e462139fd1701e93ae10713169df02c"
+git-tree-sha1 = "a51d16b075dc52e22cde13b4a6e0ba4ba86649ee"
 uuid = "3f0dd361-4fe0-5fc6-8523-80b14ec94d85"
-version = "0.1.2"
+version = "0.1.3"
 
 [[DelimitedFiles]]
 deps = ["Mmap"]
@@ -171,15 +177,15 @@ version = "0.5.0"
 
 [[FEMBase]]
 deps = ["FEMBasis", "FEMQuad", "LinearAlgebra", "SparseArrays", "Statistics", "Test", "TimerOutputs"]
-git-tree-sha1 = "198c857f558749c073638f40d5817965d384c3d1"
+path = "../dev/FEMBase"
 uuid = "fbcbbc08-f1bf-5204-9233-b69f5d396135"
-version = "0.2.1"
+version = "0.2.1+"
 
 [[FEMBasis]]
 deps = ["Calculus", "LinearAlgebra", "Test"]
-git-tree-sha1 = "aa935fc1c3daeca832945d5282c8dbcad8b1c252"
+path = "../dev/FEMBasis"
 uuid = "353fb843-c566-51e6-ba49-78b3e3d5ebb5"
-version = "0.2.0"
+version = "0.2.0+"
 
 [[FEMBeam]]
 deps = ["FEMBase", "LinearAlgebra", "SparseArrays", "Test"]
@@ -192,6 +198,14 @@ deps = ["Test"]
 git-tree-sha1 = "7bb06e83f551212fdbd9b1197616159e414ef3bb"
 uuid = "be8e8821-3f6f-54c2-987c-d2773c3a52cb"
 version = "0.2.0"
+
+[[FEMSparse]]
+deps = ["Profile", "SparseArrays"]
+git-tree-sha1 = "07545756fb9a30efc6bed4f6372371d999723cd4"
+repo-rev = "jah/performance_test"
+repo-url = "https://github.com/JuliaFEM/FEMSparse.jl"
+uuid = "55713501-a877-5f50-80b5-148fff7ff4b3"
+version = "0.0.0"
 
 [[FileIO]]
 deps = ["Pkg", "Random", "Test"]
@@ -233,6 +247,12 @@ git-tree-sha1 = "5582ec74f735cf8d12e562a2e65c47f34063bd51"
 uuid = "d9be37ee-ecc9-5288-90f1-b9ca67657a75"
 version = "0.7.0"
 
+[[Inflate]]
+deps = ["Pkg", "Printf", "Random", "Test"]
+git-tree-sha1 = "b7ec91c153cf8bff9aff58b39497925d133ef7fd"
+uuid = "d25df0c9-e2be-5dd7-82c8-3ad0b3e990b9"
+version = "0.1.1"
+
 [[InteractiveUtils]]
 deps = ["LinearAlgebra", "Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
@@ -264,10 +284,10 @@ uuid = "30d91d44-8115-11e8-1d28-c19a5ac16de8"
 version = "0.2.0"
 
 [[JuliaFEM]]
-deps = ["AbaqusReader", "Arpack", "AsterReader", "FEMBase", "FEMBasis", "FEMBeam", "FEMQuad", "ForwardDiff", "HDF5", "HeatTransfer", "LightXML", "LinearAlgebra", "Logging", "MortarContact2D", "MortarContact2DAD", "Pkg", "REPL", "Reexport", "SparseArrays", "Statistics", "Test", "TimerOutputs"]
-git-tree-sha1 = "0c6bd4961c7d5d7f7ab605dc432c5b042fe71127"
+deps = ["AbaqusReader", "Arpack", "AsterReader", "FEMBase", "FEMBasis", "FEMBeam", "FEMQuad", "ForwardDiff", "HDF5", "HeatTransfer", "LightXML", "LinearAlgebra", "Logging", "MortarContact2D", "MortarContact2DAD", "Parameters", "Pkg", "REPL", "Reexport", "SparseArrays", "Statistics", "Test", "TimerOutputs"]
+path = "../dev/JuliaFEM"
 uuid = "f80590ac-b429-510a-8a99-e7c46989f22d"
-version = "0.5.0"
+version = "0.5.0+"
 
 [[LibCURL]]
 deps = ["BinaryProvider", "Compat", "Libdl", "Pkg", "Printf"]
@@ -294,10 +314,10 @@ uuid = "2ec943e9-cfe8-584d-b93d-64dcb6d567b7"
 version = "1.0.0"
 
 [[LightGraphs]]
-deps = ["ArnoldiMethod", "Base64", "CodecZlib", "DataStructures", "DelimitedFiles", "Distributed", "LinearAlgebra", "Markdown", "Pkg", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "446a9cf208ec401ae67e517de4eeceaf2cd5cdac"
+deps = ["ArnoldiMethod", "Base64", "DataStructures", "DelimitedFiles", "Distributed", "Inflate", "LinearAlgebra", "Markdown", "Pkg", "Random", "SharedArrays", "SimpleTraits", "SparseArrays", "Statistics", "Test"]
+git-tree-sha1 = "c7222c370d5cf6d4e08ae40bddd8c0db6852dfb1"
 uuid = "093fc24a-ae57-5d10-9952-331d41423f4d"
-version = "1.1.0"
+version = "1.2.0"
 
 [[LightXML]]
 deps = ["BinaryProvider", "Libdl", "Pkg", "Test"]
@@ -394,6 +414,10 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[Profile]]
+deps = ["Printf"]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets"]
@@ -507,7 +531,7 @@ uuid = "30578b45-9adc-5946-b283-645ec420af67"
 version = "0.4.0"
 
 [[UUIDs]]
-deps = ["Random"]
+deps = ["Random", "SHA"]
 uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
