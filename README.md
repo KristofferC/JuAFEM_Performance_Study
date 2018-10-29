@@ -284,3 +284,25 @@ Nonzeros in factorization (no reordering, reordering)
    write results to disk                                         1    6.70s  1.56%    878MiB  0.50%
  ──────────────────────────────────────────────────────────────────────────────────────────────────
  ```
+
+
+### Assembly (wip)
+
+#### Before CSC assembly
+
+```
+9.530232 seconds (30.20 M allocations: 1.676 GiB, 5.41% gc time)
+9.813064 seconds (30.20 M allocations: 1.676 GiB, 9.18% gc time)
+9.354542 seconds (30.20 M allocations: 1.676 GiB, 4.92% gc time)
+9.706093 seconds (30.20 M allocations: 1.676 GiB, 5.20% gc time)
+```
+
+#### After CSC assembly
+```
+8.048274 seconds (30.30 M allocations: 1.592 GiB, 5.92% gc time)
+7.943416 seconds (30.30 M allocations: 1.592 GiB, 6.03% gc time)
+8.430728 seconds (30.30 M allocations: 1.592 GiB, 6.19% gc time)
+8.202647 seconds (30.30 M allocations: 1.592 GiB, 6.12% gc time)
+```
+
+
