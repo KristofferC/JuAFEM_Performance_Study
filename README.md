@@ -305,4 +305,35 @@ Nonzeros in factorization (no reordering, reordering)
 8.202647 seconds (30.30 M allocations: 1.592 GiB, 6.12% gc time)
 ```
 
+### Problem, type instability in assemble
+
+```
+134 │     %58   = invoke FEMBase.interpolate(%56::Element{Tet10}, "displacement"::String, _5::Float64)::ANY
+
+207 │     %563  = invoke FEMBase.interpolate(%56::Element{Tet10}, "youngs modulus"::String, %81::FEMBase.Point{IntegrationPoint}, _5::Float64)::ANY
+208 │     %564  = invoke FEMBase.interpolate(%56::Element{Tet10}, "poissons ratio"::String, %81::FEMBase.Point{IntegrationPoint}, _5::Float64)::ANY
+209 │     %565  = (%563 * %564)::ANY
+    │     %566  = (1.0 + %564)::ANY
+    │     %567  = (2.0 * %564)::ANY
+    │     %568  = (1.0 - %567)::ANY
+    │     %569  = (%566 * %568)::ANY
+    │     %570  = (%565 / %569)::ANY
+210 │     %571  = (1.0 + %564)::ANY
+    │     %572  = (2.0 * %571)::ANY
+    │     %573  = (%563 / %572)::ANY
+211 │     %574  = (2 * %573)::ANY
+    │     %575  = (%574 + %570)::ANY
+
+
+    │     %1536 = φ (#332 => %1469, #10 => %55)::ANY
+    │     %1537 = invoke JuliaFEM.get_gdofs(_3::Problem{Elasticity}, %56::Element{Tet10})::Array{Int64,1}
+333 │     %1538 = (Base.getfield)(assembly, :K)::SPARSEMATRIXCOO
+    │             (JuliaFEM.add!)(%1538, %1537, %1537, %9)
+335 │     %1540 = (Base.getfield)(%1, :geometric_stiffness)::Bool
+    └────         goto #336 if not %1540
+336 335 ─ %1542 = (Base.getfield)(assembly, :Kg)::SPARSEMATRIXCOO
+    └────         (JuliaFEM.add!)(%1542, %1537, %1537, %1535)
+339 336 ─ %1544 = (Base.getfield)(assembly, :f)::SPARSEMATRIXCOO
+    │     %1545 = (%1536 - %13)::ANY
+```
 
