@@ -1,17 +1,27 @@
-#model = "EIFFEL_TOWER_TET10_220271"
 ENV["LINES"] = 120
-model, setup = ARGS
-n_machines, n_threads = split(setup, 'x')
+if !isempty(ARGS)
+    model, setup = ARGS
+    n_machines, n_threads = parse(Int.(split(setup, 'x')))
+else
+    model = "TET10_220271"
+    n_machines=1; n_threads=4
+end
 import LinearAlgebra
-LinearAlgebra.BLAS.set_num_threads(parse(Int, n_threads))
+LinearAlgebra.BLAS.set_num_threads(n_threads)
 ENV["USE_OPENMP"] = 1
 ENV["OPENBLAS_NUM_THREADS"] = n_threads
 ENV["JULIA_NUM_THREADS"] = n_threads
 
+new_code = true
+using FileIO
+using JLD2
 using JuliaFEM
+using FEMBase
 using TimerOutputs
 using SparseArrays, LinearAlgebra
 using AMD
+using Metis
+
 
 """
     fill_diagonal(A)
@@ -19,6 +29,17 @@ using AMD
 Return a diagonal matrix `D` having 1.0 in all zero rows of matrix `A`. Then,
 one haves matrix `A + D` which should be invertible.
 """
+function fill_diagonal!(A)
+    for col in 1:size(A, 2)
+        for r in nzrange(A, col)
+            row = A.rowval[r]
+            if col == row && A.nzval[r] == 0
+                A.nzval[r] = 1
+            end
+        end
+    end
+end
+
 function fill_diagonal(A)
     N = size(A, 2)
     zero_rows = ones(N)
@@ -28,6 +49,66 @@ function fill_diagonal(A)
     return dropzeros(spdiagm(0 => zero_rows))
 end
 
+
+function renumber_mesh!(mesh)
+    # Renumber nodes and elements so they start at 1
+
+    #########
+    # Nodes #
+    #########
+    node_mapping = Dict{Int, Int}()
+    nodes = Dict{Int, Vector{Float64}}()
+    for (i, node_id) in enumerate(sort(collect(keys(mesh.nodes))))
+        nodes[i] = mesh.nodes[node_id]
+        node_mapping[node_id] = i
+    end
+
+    ############
+    # Elements #
+    ############
+    elements = Dict{Int, Vector{Float64}}()
+    # The same comment about storing element numbers from 1:n applies here
+    element_mapping = Dict{Int, Int}()
+    for (i, element_id) in enumerate(sort(collect(keys(mesh.elements))))
+        elements[i] = [node_mapping[z] for z in mesh.elements[element_id]]
+        element_mapping[element_id] = i
+    end
+
+    ########
+    # Sets #
+    ########
+    # The nodesets need use the new node ordering
+    nodesets = Dict{Symbol, Set{Int}}()
+    for (name, nodes) in mesh.node_sets
+        nodesets[name] = Set(node_mapping[z] for z in nodes)
+    end
+
+    # So does the cell cets (element sets)
+    elementsets = Dict{Symbol, Set{Int}}()
+    for (name, elements) in mesh.element_sets
+        elementsets[name] = Set(element_mapping[z] for z in elements)
+    end
+
+   # So does the cell cets (element sets)
+    elementtypes = Dict{Int, Symbol}()
+    for (element_id, typ) in mesh.element_types
+        elementtypes[element_mapping[element_id]] = typ
+    end
+
+    surfacesets = Dict{Symbol, Vector{Tuple{Int, Symbol}}}()
+    for (name, surface) in mesh.surface_sets
+        surfacesets[name] = [(element_mapping[z[1]], z[2]) for z in surface]
+    end
+
+    mesh.nodes = nodes
+    mesh.elements = elements
+    mesh.node_sets = nodesets
+    mesh.element_sets = elementsets
+    mesh.element_types = elementtypes
+    mesh.surface_sets = surfacesets
+    return mesh
+end
+
 function run_simulation(mesh, results)
     println("running")
     isfile(mesh) || error("Mesh file $mesh not found!")
@@ -35,6 +116,7 @@ function run_simulation(mesh, results)
     @timeit "initialize model" begin
 
         @timeit "parse input data" mesh = abaqus_read_mesh(mesh)
+        renumber_mesh!(mesh)
 
         @timeit "initialize models" begin
             tower = Problem(Elasticity, "tower", 3)
@@ -44,6 +126,13 @@ function run_simulation(mesh, results)
             update!(tower_elements, "density", 7.85E-9)
             update!(tower_elements, "displacement load 3", -9810.0)
             add_elements!(tower, tower_elements)
+            if new_code
+                @timeit "create coloring" begin
+                    coloring = JuliaFEM.create_coloring(mesh)
+                    FEMBase.assign_colors!(tower, coloring)
+                    tower.assemble_parallel = true
+                end
+            end
             support = Problem(Dirichlet, "fixed", 3, "displacement")
             support_elements = create_surface_elements(mesh, "SUPPORT")
             update!(support_elements, "displacement 1", 0.0)
@@ -61,30 +150,36 @@ function run_simulation(mesh, results)
 
     local perm
     @timeit "timeloop" for i in 1:10
-        local K, f, C1, g
+        for problem in get_field_problems(analysis)
+            empty!(problem.assembly)
+        end
+        global K, f, C1, g
         @timeit "assemble" begin
             @timeit "assemble problems" for problem in get_problems(analysis)
-                assemble!(problem, time)
+                println("start assemble")
+                @time assemble!(problem, time)
+                println("end assemble")
             end
             @timeit "construct global assemblies" begin
                 @timeit "get_field_assembly" M, K, Kg, f, fg = get_field_assembly(analysis)
                 ndofs = size(K, 2)
                 @timeit "get_boundary_assembly" Kb, C1, C2, D, fb, g = get_boundary_assembly(analysis, ndofs)
+                # Don't care about this here
   #              @timeit "sum K" K = K + Kg + Kb
    #             @timeit "sum f" f = f + fg + fb
             end
         end
+        # TODO: Investigate this
+        d = [438517, 438518, 438519]
+        Kd = sparse(d, d, [1.0, 1.0, 1.0], size(K,1), size(K,2))
 
-        Kd = fill_diagonal(K)
-
-        if i == 1
+        if new_code == true && i == 1
             @info "Created sparsity pattern, total number of nonzeros: $(nnz(K)), size $(Base.summarysize(K) / (1024^2)) MB"
         end
         @timeit "solution" begin
             # free up some memory before solution by emptying field assemblies from problems
-            for problem in get_field_problems(analysis)
-                empty!(problem.assembly)
-            end
+            # TODO: Make this not empty K in place
+
             # at this point we basically have [u,la] = [K C1; C2 D] \ [f,g]
             @timeit "eliminate boundary conditions using penalty method" begin
                 Kb = 1.0e36*C1'*C1
@@ -92,12 +187,19 @@ function run_simulation(mesh, results)
             end
             @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb+Kd)
 
-            if i == 1
-                perm = AMD.amd(Ks.data)
-                @assert isperm(perm)
+            if new_code && i == 1
+                # AMD gives a crappy reordering for some reason...
+                #perm = AMD.amd(Ks.data)
+                #@assert isperm(perm)
+                g = Metis.graph(Ks.data; check_hermitian=false)
+                perm, iperm = Metis.permutation(g)
             end
 
-            @timeit "factorize K" F = LinearAlgebra.cholesky(Ks; perm = Vector{Int64}(perm))
+            if new_code
+                @timeit "factorize K" F = LinearAlgebra.cholesky(Ks; perm = Vector{Int64}(perm))
+            else
+                @timeit "factorize K" F = LinearAlgebra.cholesky(Ks)
+            end
             @info "Created factorization pattern, total number of nonzeros: $(nnz(F))"
 
             @timeit "solve u" u = F \ (f+fb)
@@ -111,13 +213,13 @@ function run_simulation(mesh, results)
 #        @timeit "postprocess stress" postprocess!(tower, time, Val{:stress})
 #    end
 
-    @timeit "write results to disk" write_results!(analysis, time)
+    @timeit "write results to disk" JuliaFEM.write_results!(analysis, time)
 
     close(xdmf.hdf)
 end
 
 mesh = joinpath(@__DIR__, "EIFFEL_TOWER_$model.inp")
-results = "$(model)_$(setup)"
+results = "$(model)_$(n_threads)x$(n_machines)"
 TimerOutputs.reset_timer!()
 @timeit "run simulation 1" run_simulation(mesh, results)
 print_timer(compact=true)
