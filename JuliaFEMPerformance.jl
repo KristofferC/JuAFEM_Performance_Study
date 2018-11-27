@@ -12,15 +12,18 @@ ENV["USE_OPENMP"] = 1
 ENV["OPENBLAS_NUM_THREADS"] = n_threads
 ENV["JULIA_NUM_THREADS"] = n_threads
 
-new_code = true
+NEW_CODE = false
+
 using FileIO
 using JLD2
 using JuliaFEM
-using FEMBase
+if NEW_CODE
+    using FEMBase
+end
 using TimerOutputs
 using SparseArrays, LinearAlgebra
-using AMD
-using Metis
+# using AMD
+# using Metis
 
 
 """
@@ -126,7 +129,7 @@ function run_simulation(mesh, results)
             update!(tower_elements, "density", 7.85E-9)
             update!(tower_elements, "displacement load 3", -9810.0)
             add_elements!(tower, tower_elements)
-            if new_code
+            if NEW_CODE
                 @timeit "create coloring" begin
                     coloring = JuliaFEM.create_coloring(mesh)
                     FEMBase.assign_colors!(tower, coloring)
@@ -165,15 +168,16 @@ function run_simulation(mesh, results)
                 ndofs = size(K, 2)
                 @timeit "get_boundary_assembly" Kb, C1, C2, D, fb, g = get_boundary_assembly(analysis, ndofs)
                 # Don't care about this here
-  #              @timeit "sum K" K = K + Kg + Kb
+   #             @timeit "sum K" K = K + Kg + Kb
    #             @timeit "sum f" f = f + fg + fb
             end
         end
+
         # TODO: Investigate this
         d = [438517, 438518, 438519]
         Kd = sparse(d, d, [1.0, 1.0, 1.0], size(K,1), size(K,2))
 
-        if new_code == true && i == 1
+        if NEW_CODE == true && i == 1
             @info "Created sparsity pattern, total number of nonzeros: $(nnz(K)), size $(Base.summarysize(K) / (1024^2)) MB"
         end
         @timeit "solution" begin
@@ -187,16 +191,17 @@ function run_simulation(mesh, results)
             end
             @timeit "create symmetric K" Ks = LinearAlgebra.Symmetric(K+Kb+Kd)
 
-            if new_code && i == 1
+            if NEW_CODE && i == 1
                 # AMD gives a crappy reordering for some reason...
                 #perm = AMD.amd(Ks.data)
                 #@assert isperm(perm)
-                g = Metis.graph(Ks.data; check_hermitian=false)
-                perm, iperm = Metis.permutation(g)
+                # Metis is disabled for now
+                #g = Metis.graph(Ks.data; check_hermitian=false)
+                #perm, iperm = Metis.permutation(g)
             end
 
-            if new_code
-                @timeit "factorize K" F = LinearAlgebra.cholesky(Ks; perm = Vector{Int64}(perm))
+            if NEW_CODE
+                @timeit "factorize K" F = LinearAlgebra.cholesky(Ks) #; perm = Vector{Int64}(perm))
             else
                 @timeit "factorize K" F = LinearAlgebra.cholesky(Ks)
             end
