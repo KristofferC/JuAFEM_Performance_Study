@@ -12,7 +12,7 @@ ENV["USE_OPENMP"] = 1
 ENV["OPENBLAS_NUM_THREADS"] = n_threads
 ENV["JULIA_NUM_THREADS"] = n_threads
 
-NEW_CODE = false
+NEW_CODE = true
 
 using FileIO
 using JLD2
@@ -133,6 +133,7 @@ function run_simulation(mesh, results)
                 @timeit "create coloring" begin
                     coloring = JuliaFEM.create_coloring(mesh)
                     FEMBase.assign_colors!(tower, coloring)
+                    tower.assemble_csc = true
                     tower.assemble_parallel = true
                 end
             end

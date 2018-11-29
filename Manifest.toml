@@ -90,9 +90,9 @@ version = "0.4.1"
 
 [[CategoricalArrays]]
 deps = ["Compat", "Future", "Missings", "Printf", "Reexport", "Requires"]
-git-tree-sha1 = "64651a0315fc342e7e35d03d67b2da920937c9be"
+git-tree-sha1 = "11419d157ab75a54a8af63315e7a279a593971bc"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.5.0"
+version = "0.5.1"
 
 [[CodecZlib]]
 deps = ["BinaryProvider", "Libdl", "Test", "TranscodingStreams"]
@@ -180,7 +180,7 @@ version = "0.6.0"
 
 [[FEMBase]]
 deps = ["FEMBasis", "FEMQuad", "LinearAlgebra", "SparseArrays", "Statistics", "Test", "TimerOutputs"]
-git-tree-sha1 = "4893f0a2b5e5de1d447144864276dbf21b53567c"
+git-tree-sha1 = "cb468103bb27b3dba7c163079b25055a778547b1"
 repo-rev = "kc/reorder"
 repo-url = "https://github.com/JuliaFEM/FEMBase.jl.git"
 uuid = "fbcbbc08-f1bf-5204-9233-b69f5d396135"
@@ -261,7 +261,7 @@ uuid = "d25df0c9-e2be-5dd7-82c8-3ad0b3e990b9"
 version = "0.1.1"
 
 [[InteractiveUtils]]
-deps = ["LinearAlgebra", "Markdown"]
+deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[InternedStrings]]
@@ -297,12 +297,12 @@ uuid = "30d91d44-8115-11e8-1d28-c19a5ac16de8"
 version = "0.2.0"
 
 [[JuliaFEM]]
-deps = ["AbaqusReader", "Arpack", "AsterReader", "FEMBase", "FEMBasis", "FEMBeam", "FEMQuad", "ForwardDiff", "HDF5", "HeatTransfer", "InteractiveUtils", "LightXML", "LinearAlgebra", "Logging", "MortarContact2D", "MortarContact2DAD", "Parameters", "Pkg", "REPL", "Reexport", "SparseArrays", "Statistics", "Test", "TimerOutputs"]
-git-tree-sha1 = "a32743746c6ba88fad55c3a51d350176cdb6b791"
+deps = ["AbaqusReader", "Arpack", "AsterReader", "FEMBase", "FEMBasis", "FEMBeam", "FEMQuad", "FEMSparse", "ForwardDiff", "HDF5", "HeatTransfer", "LightXML", "LinearAlgebra", "MortarContact2D", "MortarContact2DAD", "Parameters", "Reexport", "SparseArrays", "Statistics", "TimerOutputs"]
+git-tree-sha1 = "b8ff10f3d44d91a36e495df3383ef0cb2594c42e"
 repo-rev = "kc/local_buffer"
 repo-url = "https://github.com/JuliaFEM/JuliaFEM.jl.git"
 uuid = "f80590ac-b429-510a-8a99-e7c46989f22d"
-version = "0.5.0+"
+version = "0.5.0"
 
 [[LegacyStrings]]
 deps = ["Compat"]
@@ -552,7 +552,7 @@ uuid = "30578b45-9adc-5946-b283-645ec420af67"
 version = "0.4.0"
 
 [[UUIDs]]
-deps = ["Random"]
+deps = ["Random", "SHA"]
 uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
 [[Unicode]]
