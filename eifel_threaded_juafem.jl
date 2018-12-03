@@ -7,7 +7,7 @@ using FileIO
 using Pardiso
 using Statistics
 using StructArrays
-using Metis
+# using Metis
 
 # TODO:
 # Add integration with other direct solvers
@@ -254,10 +254,12 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
 
             @timeit "create sparsity pattern" K = create_sparsity_pattern(dh);
 
+            #=
             @timeit "find minimizing perm" begin
                 S = Metis.graph(K; check_hermitian=false)
                 perm, iperm = Metis.permutation(S)
             end
+            =#
 
             f = zeros(ndofs(dh))
             @info "Created sparsity pattern, total number of nonzeros: $(nnz(K)), size $(Base.summarysize(K) / (1024^2)) MB"
@@ -285,7 +287,7 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
         cholmod_times = Float64[]
         pardiso_times = Float64[]
         first_fact = true
-        for t in 1:2
+        for t in 1:10
             time_step = @elapsed begin @timeit "timesteps" begin
                 println("****Timestep $t ****")
                 @timeit "update boundary conditions" update!(dbc, t)
@@ -301,7 +303,7 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
                 @info "Applied boundary conditions"
 
                 @time cholmod_time = @elapsed @timeit "factorization backslash" begin
-                    u = cholesky(Symmetric(K); perm = Vector{Int64}(perm) ) \ f;
+                    u = cholesky(Symmetric(K) #=; perm = Vector{Int64}(perm) =#) \ f;
                 end
                 push!(cholmod_times, cholmod_time)
                 @show sum(abs2, u)
@@ -352,8 +354,6 @@ function run_assemble(mesh::AbstractString, output_path::AbstractString; use_par
                    pardiso_times = Tuple(pardiso_times), cholmod_times = Tuple(cholmod_times), post_process_time = post_process_time)
     mkpath(output_path)
     file = joinpath(output_path, "$(basename(mesh))_$(nt).jld2")
-    # TODO: Export to JLD instead, exporting to CSV when some of the cells are vectors
-    # is weird
     @save file df
     @info "Wrote results to $file"
     println()

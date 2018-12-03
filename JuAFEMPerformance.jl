@@ -19,8 +19,8 @@ USE_CHOLMOD     = true
 
 # Meshes #
 ##########
-const MESHES = ["EIFFEL_TOWER_TET10_220271.inp",
-                #"EIFFEL_TOWER_TET10_376120.inp",
+const MESHES = [#"EIFFEL_TOWER_TET10_220271.inp",
+                "EIFFEL_TOWER_TET10_376120.inp",
                 #"EIFFEL_TOWER_TET10_921317.inp"
                ]
 # Download the meshes
@@ -35,7 +35,7 @@ end
 
 # Parallelization #
 ###################
-N_THREADS = [4]
+N_THREADS = [1, 4, 8]
 
 # Julia executable settings #
 #############################
@@ -78,7 +78,7 @@ function run_experiment()
     end
 end
 
-#run_experiment()
+run_experiment()
 
 #################
 # Data analysis #
